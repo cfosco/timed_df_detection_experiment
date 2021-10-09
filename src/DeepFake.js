@@ -9,7 +9,7 @@ import { Progress } from 'react-sweet-progress';
 import "react-sweet-progress/lib/style.css";
 
 import PlusIcon from './plus.png';
-import tmp from './runs_for_exp1_190.json';
+import tmp from './new_exp2_5levels_id0.json';
 
 import { Dropbox } from 'dropbox';
 const accessToken = 'ZdKaQvnqXXAAAAAAAAAckhlM6oGXSIUsGTwVBuSi_WRX1pN5clPbNuY2buS03zWu';
@@ -116,9 +116,11 @@ class Experiment extends Component {
   constructor(props){
     super(props);
     this.state = {
-      currentVideo: tmp[0],
+      anchorEl: null,
+      buttonText: 'START',
       currentLevel: 1,
       currentVideoIndex: 1,
+      currentVideo: tmp[0][0],
       disabled: true,
       left: false,
       leftVideo: 'fake',
@@ -137,9 +139,25 @@ class Experiment extends Component {
       videoData: tmp,
       maxLevels: Object.keys(tmp).length,
       maxImages: tmp[0].length,
-    }
+    };
+
+
+    console.log("constructor called")
+
+    this._loadNextVideoPair = this._loadNextVideo.bind(this);
+    this._loadNextLevel = this._loadNextLevel.bind(this);
+
+    this._handleClick = this._handleClick.bind(this);
+    this._handleClose = this._handleClose.bind(this);
+    this._handleKeyDown = this._handleKeyDown.bind(this);
+    this._handleLeftKeyPressed = this._handleLeftKeyPressed.bind(this);
+    this._handleRightKeyPressed = this._handleRightKeyPressed.bind(this);
+    this._handleStartButton = this._handleStartButton.bind(this);
+    this._handleSubmitButton = this._handleSubmitButton.bind(this);
+    this._handleNullify = this._handleNullify.bind(this);
 
   }
+
 
   componentDidMount(){
     var url = window.location.href;
@@ -182,7 +200,53 @@ class Experiment extends Component {
     this.setState({anchorEl: null});
   }
 
+
+  _handleKeyDown = (event) => {
+    document.removeEventListener("keydown", this._handleKeyDown);
+    console.log(this.state.videoChoices);
+    if (this.state.percent === 100) { return; }
+    switch(event.keyCode) {
+      case 32:
+        this._handleNullify();
+        break;
+      case 37: // Left arrow keycode
+        this._handleLeftKeyPressed();
+        break;
+      case 39: // Right arrow keycode
+        this._handleRightKeyPressed();
+        break;
+      default:
+        document.addEventListener("keydown", this._handleKeyDown);
+        break
+    }
+  }
+
+  _handleLeftKeyPressed() {
+    this.state.times.push(performance.now() - this.state.timer);
+    this.state.videoChoices.push({'choice': this.state.leftVideo, 'left': this.state.leftVideo, 'right': this.state.rightVideo, 'videoPair': this.state.currentVideoPair});
+    this.setState({
+      left: true,
+      percent: this.state.percent + 100/this.state.maxImages,
+    });
+    setTimeout(() => this._loadNextVideoPair(), 500);
+  }
+
+  _handleRightKeyPressed() {
+    this.state.times.push(performance.now() - this.state.timer);
+    this.state.videoChoices.push({'choice': this.state.rightVideo, 'left': this.state.leftVideo, 'right': this.state.rightVideo, 'videoPair': this.state.currentVideoPair});
+    this.setState({
+      right: true,
+      percent: this.state.percent + 100/this.state.maxImages,
+    });
+    setTimeout(() => this._loadNextVideoPair(), 500);
+  }
+
+
   _handleStartButton() {
+
+    console.log("entering _handleStartButton")
+    console.log(this.state.buttonText )
+
     if (this.state.buttonText !== 'START') { return; }
 
     this.setState({buttonText: 3})
@@ -241,8 +305,8 @@ class Experiment extends Component {
     }
     var video = this.state.videoData[this.state.currentLevel-1][this.state.currentVideoIndex];
     var random = Math.round(Math.random());
-    // var nextLeftVideo = random ? "fake" : "real";
-    // var nextRightVideo = random ? "real" : "fake";
+    var nextLeftVideo = random ? "fake" : "real";
+    var nextRightVideo = random ? "real" : "fake";
     if(video === undefined) {
       return;
     }
@@ -251,8 +315,8 @@ class Experiment extends Component {
       right: false,
       timer: performance.now(),
       currentVideo: video,
-      // leftVideo: nextLeftVideo,
-      // rightVideo: nextRightVideo,
+      leftVideo: nextLeftVideo,
+      rightVideo: nextRightVideo,
       currentVideoIndex: this.state.currentVideoIndex + 1,
       overclick: false,
     })
@@ -466,6 +530,8 @@ class DeepFake extends Component {
       maxLevels: Object.keys(tmp).length,
       maxImages: tmp[0].length,
     };
+
+    console.log("constructor called")
 
     this._loadNextVideoPair = this._loadNextVideoPair.bind(this);
     this._loadNextLevel = this._loadNextLevel.bind(this);
