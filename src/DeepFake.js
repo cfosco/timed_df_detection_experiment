@@ -121,15 +121,17 @@ class Experiment extends Component {
       currentLevel: 1,
       currentVideoIndex: 1,
       currentVideo: tmp[0][0],
+      currentVideoInterval: 3000,
       disabled: true,
-      left: false,
-      leftVideo: 'fake',
+      // left: false,
+      // leftVideo: 'fake',
       overclick: false,
-      nullify: [],
-      percent: Math.round(Math.min((0) / tmp[0].length * 100, 100)),
-      right: false,
-      rightVideo: 'real',
+      // nullify: [],
+      percentLevelCompletion: Math.round(Math.min((0) / tmp[0].length * 100, 100)),
+      // right: false,
+      // rightVideo: 'real',
       showGame: false,
+      showQuestion: false,
       time: performance.now(),
       timer: performance.now(),
       times: [],
@@ -143,18 +145,23 @@ class Experiment extends Component {
 
 
     console.log("constructor called")
+    console.log(tmp[0])
 
-    this._loadNextVideoPair = this._loadNextVideo.bind(this);
+
+    this._loadNextVideo = this._loadNextVideo.bind(this);
     this._loadNextLevel = this._loadNextLevel.bind(this);
 
     this._handleClick = this._handleClick.bind(this);
     this._handleClose = this._handleClose.bind(this);
-    this._handleKeyDown = this._handleKeyDown.bind(this);
-    this._handleLeftKeyPressed = this._handleLeftKeyPressed.bind(this);
-    this._handleRightKeyPressed = this._handleRightKeyPressed.bind(this);
+    this._handleYesButton = this._handleYesButton.bind(this);
+    this._handleNoButton = this._handleNoButton.bind(this);
+    this._handleNoButton = this._handleNoButton.bind(this);
+    // this._handleKeyDown = this._handleKeyDown.bind(this);
+    // this._handleLeftKeyPressed = this._handleLeftKeyPressed.bind(this);
+    // this._handleRightKeyPressed = this._handleRightKeyPressed.bind(this);
     this._handleStartButton = this._handleStartButton.bind(this);
     this._handleSubmitButton = this._handleSubmitButton.bind(this);
-    this._handleNullify = this._handleNullify.bind(this);
+    // this._handleNullify = this._handleNullify.bind(this);
 
   }
 
@@ -168,29 +175,41 @@ class Experiment extends Component {
       this.setState({videoData: data}, () => this.setState({
         maxLevels: Object.keys(this.state.videoData).length,
         maxImages: this.state.videoData[0].length,
-        percent: Math.round(Math.min((0) / this.state.videoData[0].length * 100, 100)),
+        percentLevelCompletion: Math.round(Math.min((0) / this.state.videoData[0].length * 100, 100)),
         currentVideo: this.state.videoData[0][0],
       }))
     }
     document.getElementById('instruction-button').click();
-    this.interval = setInterval(() => this.setState({ time: Date.now() }, () => {
-      var leftVideoPlayer = document.getElementById("left-video");
-      var rightVideoPlayer = document.getElementById("right-video");
-      if (leftVideoPlayer && leftVideoPlayer.currentTime > 3) {
-        leftVideoPlayer.currentTime = 0;
-      }
-      if (rightVideoPlayer && rightVideoPlayer.currentTime > 3) {
-        rightVideoPlayer.currentTime = 0;
-      }
-    }), 1000);
+    // this.interval = setInterval(() => this.setState({ time: Date.now() }, () => {
+    //   var leftVideoPlayer = document.getElementById("left-video");
+    //   var rightVideoPlayer = document.getElementById("right-video");
+    //   if (leftVideoPlayer && leftVideoPlayer.currentTime > 3) {
+    //     leftVideoPlayer.currentTime = 0;
+    //   }
+    //   if (rightVideoPlayer && rightVideoPlayer.currentTime > 3) {
+    //     rightVideoPlayer.currentTime = 0;
+    //   }
+    // }), 1000);
   }
 
   componentDidUpdate(){}
 
   componentWillUnmount() {
     clearInterval(this.interval);
-    document.removeEventListener("keydown", this._handleKeyDown);
+    // document.removeEventListener("keydown", this._handleKeyDown);
   }
+
+
+  _makeid(length) {
+    var result = '';
+    var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    var charactersLength = characters.length;
+    for (var i = 0; i < length; i++) {
+       result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    }
+    return result;
+  }
+
 
   _handleClick(e) {
     this.setState({anchorEl: e.currentTarget});
@@ -201,45 +220,50 @@ class Experiment extends Component {
   }
 
 
-  _handleKeyDown = (event) => {
-    document.removeEventListener("keydown", this._handleKeyDown);
-    console.log(this.state.videoChoices);
-    if (this.state.percent === 100) { return; }
-    switch(event.keyCode) {
-      case 32:
-        this._handleNullify();
-        break;
-      case 37: // Left arrow keycode
-        this._handleLeftKeyPressed();
-        break;
-      case 39: // Right arrow keycode
-        this._handleRightKeyPressed();
-        break;
-      default:
-        document.addEventListener("keydown", this._handleKeyDown);
-        break
-    }
-  }
-
-  _handleLeftKeyPressed() {
-    this.state.times.push(performance.now() - this.state.timer);
-    this.state.videoChoices.push({'choice': this.state.leftVideo, 'left': this.state.leftVideo, 'right': this.state.rightVideo, 'videoPair': this.state.currentVideoPair});
-    this.setState({
-      left: true,
-      percent: this.state.percent + 100/this.state.maxImages,
-    });
-    setTimeout(() => this._loadNextVideoPair(), 500);
-  }
-
-  _handleRightKeyPressed() {
-    this.state.times.push(performance.now() - this.state.timer);
-    this.state.videoChoices.push({'choice': this.state.rightVideo, 'left': this.state.leftVideo, 'right': this.state.rightVideo, 'videoPair': this.state.currentVideoPair});
-    this.setState({
-      right: true,
-      percent: this.state.percent + 100/this.state.maxImages,
-    });
-    setTimeout(() => this._loadNextVideoPair(), 500);
-  }
+  // _handleKeyDown = (event) => {
+  //   document.removeEventListener("keydown", this._handleKeyDown);
+  //   console.log(this.state.videoChoices);
+  //   if (this.state.percent === 100) { return; }
+  //   switch(event.keyCode) {
+  //     case 32:
+  //       this._handleNullify();
+  //       break;
+  //     case 37: // Left arrow keycode
+  //       this._handleLeftKeyPressed();
+  //       break;
+  //     case 39: // Right arrow keycode
+  //       this._handleRightKeyPressed();
+  //       break;
+  //     default:
+  //       document.addEventListener("keydown", this._handleKeyDown);
+  //       break
+  //   }
+  // }
+  //
+  // _handleLeftKeyPressed() {
+  //   // this.state.times.push(performance.now() - this.state.timer);
+  //
+  //   this.state.videoChoices.push({'choice': this.state.leftVideo, 'left': this.state.leftVideo, 'right': this.state.rightVideo, 'videoPair': this.state.currentVideoPair});
+  //   this.setState({
+  //     left: true,
+  //     percent: this.state.percent + 100/this.state.maxImages,
+  //   });
+  //   setTimeout(() => this._loadNextVideo(), 500);
+  // }
+  //
+  // _loadChoiceScreen() {
+  //
+  // }
+  //
+  // _handleRightKeyPressed() {
+  //   this.state.times.push(performance.now() - this.state.timer);
+  //   this.state.videoChoices.push({'choice': this.state.rightVideo, 'left': this.state.leftVideo, 'right': this.state.rightVideo, 'videoPair': this.state.currentVideoPair});
+  //   this.setState({
+  //     right: true,
+  //     percent: this.state.percent + 100/this.state.maxImages,
+  //   });
+  //   setTimeout(() => this._loadNextVideo(), 500);
+  // }
 
 
   _handleStartButton() {
@@ -249,22 +273,38 @@ class Experiment extends Component {
 
     if (this.state.buttonText !== 'START') { return; }
 
+    console.log(this.state)
+
     this.setState({buttonText: 3})
     setTimeout(() => this.setState({buttonText: 2}), 1000);
     setTimeout(() => this.setState({buttonText: 1}), 2000);
     setTimeout(() => this.setState({showGame: true, buttonText: 'NEXT LEVEL'}), 3000);
-    setTimeout(() => document.addEventListener("keydown", this._handleKeyDown), 3000);
+
+    setTimeout(() => this.setState({showGame: false, showQuestion: true}), this.state.currentVideoInterval + 3000)
+    // setTimeout(() => document.addEventListener("keydown", this._handleKeyDown), 3000);
 
   }
 
-  _makeid(length) {
-    var result = '';
-    var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    var charactersLength = characters.length;
-    for (var i = 0; i < length; i++) {
-       result += characters.charAt(Math.floor(Math.random() * charactersLength));
-    }
-    return result;
+
+  _handleYesButton() {
+    let response_time = performance.now() - this.state.timer
+    this.state.times.push(response_time);
+    this.state.videoChoices.push({'response': 'yes', 'response_time': response_time, 'video': this.state.currentVideo});
+    this.setState({
+      percent: this.state.percent + 100/this.state.maxImages,
+    });
+    setTimeout(() => this._loadNextVideo(), 500);
+  }
+
+  _handleNoButton() {
+    let response_time = performance.now() - this.state.timer
+    this.state.times.push(response_time);
+    this.state.videoChoices.push({'response': 'no', 'response_time': response_time, 'video': this.state.currentVideo});
+    this.setState({
+      percent: this.state.percent + 100/this.state.maxImages,
+    });
+    setTimeout(() => this._loadNextVideo(), 500);
+
   }
 
   _handleSubmitButton() {
@@ -287,53 +327,57 @@ class Experiment extends Component {
     }
   }
 
-  _handleNullify() {
-    this.setState({overclick: true});
-    this.state.nullify.push([this.state.currentLevel, this.state.currentVideoIndex]);
-    this.state.times.push(performance.now() - this.state.timer);
-    this.state.videoChoices.push({'choice': 'null', 'left': this.state.leftVideo, 'right': this.state.rightVideo, 'videoPair': this.state.currentVideo});
-    this.setState({
-      percent: this.state.percent + 100/this.state.maxImages,
-    });
-    setTimeout(() => this._loadNextVideoPair(), 500);
-  }
+  // _handleNullify() {
+  //   this.setState({overclick: true});
+  //   this.state.nullify.push([this.state.currentLevel, this.state.currentVideoIndex]);
+  //   this.state.times.push(performance.now() - this.state.timer);
+  //   this.state.videoChoices.push({'choice': 'null', 'left': this.state.leftVideo, 'right': this.state.rightVideo, 'videoPair': this.state.currentVideo});
+  //   this.setState({
+  //     percent: this.state.percent + 100/this.state.maxImages,
+  //   });
+  //   setTimeout(() => this._loadNextVideoPair(), 500);
+  // }
+
 
   _loadNextVideo() {
-    if (this.state.percent === 100) {
+    if (this.state.percentLevelCompletion === 100) {
       this.setState({disabled: false});
       return;
     }
     var video = this.state.videoData[this.state.currentLevel-1][this.state.currentVideoIndex];
-    var random = Math.round(Math.random());
-    var nextLeftVideo = random ? "fake" : "real";
-    var nextRightVideo = random ? "real" : "fake";
     if(video === undefined) {
       return;
     }
-    this.setState({
-      left: false,
-      right: false,
+
+    this.setState({showGame: false, showQuestion: false, buttonText: "3 | Please focus on the fixation cross"});
+    setTimeout(() => this.setState({buttonText: "2 | Please focus on the fixation cross"}), 1000);
+    setTimeout(() => this.setState({buttonText: "1 | Please focus on the fixation cross"}), 2000);
+    setTimeout(() => this.setState({
+      buttonText: "",
+      showGame: true,
+      showQuestion: false,
       timer: performance.now(),
       currentVideo: video,
-      leftVideo: nextLeftVideo,
-      rightVideo: nextRightVideo,
       currentVideoIndex: this.state.currentVideoIndex + 1,
       overclick: false,
-    })
-    document.addEventListener("keydown", this._handleKeyDown);
+    }), 3000);
+
+    setTimeout(() => this.setState({showGame: false, showQuestion: true}), this.state.currentVideoInterval + 3000)
+
+    // document.addEventListener("keydown", this._handleKeyDown);
   }
 
   _loadNextLevel() {
     document.addEventListener("keydown", this._handleKeyDown);
     this.setState({
       currentLevel: this.state.currentLevel + 1,
-      percent: 0,
+      percentLevelCompletion: 0,
       showGame: true,
       buttonText: 'NEXT LEVEL',
       timer: performance.now(),
       disabled: true,
       currentVideoIndex: 0,
-    }, () => this._loadNextVideoPair())
+    }, () => this._loadNextVideo())
     if (this.state.currentLevel >= this.state.maxLevels) {
       this.setState({buttonText: 'SUBMIT'})
     }
@@ -342,12 +386,13 @@ class Experiment extends Component {
   render() {
     const {classes} = this.props;
     const { buttonText, disabled, currentLevel,
-            percent, left, right, showGame,
-            currentVideo, leftVideo, rightVideo,
+            percentLevelCompletion, showGame, showQuestion,
+            currentVideo,
             videoSize, videoDistance, overclick,
             maxLevels, anchorEl } = this.state;
     const open = Boolean(anchorEl);
     const id = open ? 'simple-popover' : undefined;
+
     return (
       <div className={classes.root}>
         <div className={classes.progressSection}>
@@ -371,21 +416,12 @@ class Experiment extends Component {
             }}
           >
             <Typography variant="subtitle1" align="center" style={{padding: 32}}>
-              <b>Instructions:</b> You will be shown pairs of videos. One of them is real, the other is a deepfake. <br />
-              Your task is to detect which one is fake <b>without moving your gaze from the fixation cross</b>. <br/>
-              There are 20 levels with 10 pairs per level. Each level should take 30 to 60 seconds. You can take breaks between levels. <br /><br />
+              <b>Instructions:</b> You will be shown short videos of faces. Some of them are deepfakes: the real face has been swapped with a different face. <br />
+              Your task is to determine whether the videos shown are real or deepfakes. <br />
 
-              During a level, keep your eyes focused on the fixation cross in the center at all times.<br />
-              Press the <b>left</b> or <b>right arrow key</b> to select which video you believe is fake. <br />
-              Try not to shift your gaze from the cross. If you accidentally do so, please press the <b>space bar</b> or the 'shifted gaze' button.
+              After seeing a video, you will be asked if what you saw was real or fake. You won't be able to rewatch the video. <br />
 
-              <br /><br />
-              <b>The first level is a warm-up run:</b> take the time to get used to staring at the cross.
-              <br/>During this run, please <b>adjust the video's distance to the cross</b>  using the slider below such that the videos are in your peripheral vision.
-              <br/>The videos should not be too close to disturb you from fixating at the center,
-              and not too far away to notably reduce your ability to distinguish them.
-              <br/>Find the distance that feels more comfortable to you.
-              <br/><b> Once the distance is adjusted, it will be kept constant for the rest of the experiment</b>.
+              There are 20 levels with 10 videos per level. Each level should take less than a minute. You can take breaks between levels. Good luck!
             </Typography>
           </Popover>
           <Typography variant="h5" style={{marginTop: 32, marginBottom: 12}}>
@@ -397,14 +433,14 @@ class Experiment extends Component {
             </Typography>
             <Progress
               style={{width: '70%', marginLeft: 8}}
-              percent={Math.ceil(percent)}
+              percentLevelCompletion={Math.ceil(percentLevelCompletion)}
               theme={{
                 active: {
-                  symbol: Math.ceil(percent) + '%',
+                  symbol: Math.ceil(percentLevelCompletion) + '%',
                   color: 'green'
                 },
                 success: {
-                  symbol: Math.ceil(percent) + '%',
+                  symbol: Math.ceil(percentLevelCompletion) + '%',
                   color: 'green'
                 }
               }}
@@ -413,16 +449,16 @@ class Experiment extends Component {
         </div>
 
         <div className={classes.videoSection}>
-          {
-            showGame ?
+            {
+            showGame &&
             <React.Fragment>
               <div className={classes.videoDisplaySection}>
                 <div className={classes.videoContainer}
                      style={{width: videoSize, height: videoSize}}>
                   <video
-                    id="left-video"
+                    id="main-video"
                     style={{height: videoSize}}
-                    src={currentVideo[leftVideo]}
+                    src={currentVideo}
                     type="video/mp4"
                     autoPlay
                     loop
@@ -453,25 +489,47 @@ class Experiment extends Component {
               </Typography> */}
             </React.Fragment>
 
-            :
-            <img src={PlusIcon} className={classes.fixationCross}
-                 style={{marginLeft: videoDistance, marginRight: videoDistance}}/>
           }
+          {
+            showQuestion &&
+
+          <React.Fragment>
+            <h3> Was the video fake? </h3>
+            <div>
+            <Button variant="contained" className={classes.startButton} onClick={this._handleYesButton}>
+              Yes
+            </Button>
+            </div>
+            <div>
+            <Button variant="contained" className={classes.startButton} onClick={this._handleNoButton}>
+              No
+            </Button>
+            </div>
+          </React.Fragment>
+
+        }
+
+        {
+          !showGame && !showQuestion &&
+          <img src={PlusIcon} className={classes.fixationCross}
+               style={{marginLeft: videoDistance, marginRight: videoDistance}}/>
+        }
+
         </div>
 
         <div className={classes.bottomSection}>
-          {
-            showGame ?
-            <div style={{display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center'}}>
+            {
+              showGame ?
+              <div style={{display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center'}}>
               {
                 currentLevel === 1 ?
                 <React.Fragment>
                   <Typography variant="h4">WARM-UP RUN</Typography>
-                  <Typography variant="caption" gutterBottom>
+                  {/*}<Typography variant="caption" gutterBottom>
                     Adjust video distance from fixation cross: {videoDistance}px
                   </Typography>
                   <Slider style={{marginTop: 16, width: '40%'}} min={0} max={64} defaultValue={videoDistance} handle={handle}
-                  onAfterChange={(val) => this.setState({videoDistance: val})} />
+                  onAfterChange={(val) => this.setState({videoDistance: val})} /> */}
                 </React.Fragment>
                 : <React.Fragment />
               }
@@ -482,16 +540,20 @@ class Experiment extends Component {
                 {// <Button disabled={overclick || !disabled} variant="contained" className={classes.gazeButton} onClick={this._handleNullify}>
                 //   shifted gaze
                 // </Button>
-              }
+                }
               </div>
             </div>
-            :
+
+          :
+
             <div style={{display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center'}}>
               <Button variant="contained" className={classes.startButton} onClick={this._handleStartButton}>
                 {buttonText}
               </Button>
             </div>
-          }
+
+        }
+
         </div>
       </div>
     );
