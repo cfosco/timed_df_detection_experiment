@@ -353,7 +353,6 @@ class Experiment extends Component {
     setTimeout(() => this.setState({buttonText: "2 | Please focus on the fixation cross"}), 1000);
     setTimeout(() => this.setState({buttonText: "1 | Please focus on the fixation cross"}), 2000);
     setTimeout(() => this.setState({
-      buttonText: "",
       showGame: true,
       showQuestion: false,
       timer: performance.now(),
@@ -494,14 +493,12 @@ class Experiment extends Component {
             showQuestion &&
 
           <React.Fragment>
-            <h3> Was the video fake? </h3>
-            <div>
-            <Button variant="contained" className={classes.startButton} onClick={this._handleYesButton}>
+            <h2> Was the video fake? </h2>
+            <div className={classes.videoContainer}>
+            <Button variant="contained" className={classes.startButton} onClick={this._handleYesButton} style={{margin:32}}>
               Yes
             </Button>
-            </div>
-            <div>
-            <Button variant="contained" className={classes.startButton} onClick={this._handleNoButton}>
+            <Button variant="contained" className={classes.startButton} onClick={this._handleNoButton} style={{margin:32}}>
               No
             </Button>
             </div>
@@ -519,20 +516,20 @@ class Experiment extends Component {
 
         <div className={classes.bottomSection}>
             {
-              showGame ?
-              <div style={{display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center'}}>
-              {
-                currentLevel === 1 ?
-                <React.Fragment>
-                  <Typography variant="h4">WARM-UP RUN</Typography>
-                  {/*}<Typography variant="caption" gutterBottom>
-                    Adjust video distance from fixation cross: {videoDistance}px
-                  </Typography>
-                  <Slider style={{marginTop: 16, width: '40%'}} min={0} max={64} defaultValue={videoDistance} handle={handle}
-                  onAfterChange={(val) => this.setState({videoDistance: val})} /> */}
-                </React.Fragment>
-                : <React.Fragment />
-              }
+              showGame &&
+            <div style={{display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center'}}>
+            {
+              // currentLevel === 1 ?
+              // <React.Fragment>
+              //   <Typography variant="h4">WARM-UP RUN</Typography>
+              //   {/*}<Typography variant="caption" gutterBottom>
+              //     Adjust video distance from fixation cross: {videoDistance}px
+              //   </Typography>
+              //   <Slider style={{marginTop: 16, width: '40%'}} min={0} max={64} defaultValue={videoDistance} handle={handle}
+              //   onAfterChange={(val) => this.setState({videoDistance: val})} /> */}
+              // </React.Fragment>
+              // : <React.Fragment />
+            }
               <div style={{display: 'flex', flexDirection: 'row'}}>
                 <Button disabled={disabled} variant="contained" className={classes.startButton} onClick={this._handleSubmitButton}>
                   {buttonText}
@@ -543,16 +540,16 @@ class Experiment extends Component {
                 }
               </div>
             </div>
-
-          :
-
+          }
+          {
+            !showGame && !showQuestion &&
             <div style={{display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center'}}>
               <Button variant="contained" className={classes.startButton} onClick={this._handleStartButton}>
                 {buttonText}
               </Button>
             </div>
 
-        }
+          }
 
         </div>
       </div>
@@ -560,6 +557,59 @@ class Experiment extends Component {
   }
 
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
