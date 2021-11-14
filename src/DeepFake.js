@@ -9,10 +9,10 @@ import { Progress } from 'react-sweet-progress';
 import "react-sweet-progress/lib/style.css";
 
 import PlusIcon from './plus.png';
-import tmp from './new_exp2_5levels_id0.json';
+import tmp from './timed_exp_test.json';
 
 import { Dropbox } from 'dropbox';
-const accessToken = 'ZdKaQvnqXXAAAAAAAAAckhlM6oGXSIUsGTwVBuSi_WRX1pN5clPbNuY2buS03zWu';
+const accessToken = 'sl.A8Q-9WfT_O8acNTt_T6RMM8CAfI46PqcmDdj9Spw2W5Kv5yWFXeg3cV2zGZyDMAUSj3-SXpcFz1vx2lXiLoqLSrqfoa7yfns7w-HsE6X__qTCvsxXW3u1RxUQAuxpRK3t-aDR3Q';
 const dbx = new Dropbox({
   accessToken
 });
@@ -30,6 +30,7 @@ const styles = theme => ({
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
+    width: '90%',
   },
   fixationCross: {
     width: 32,
@@ -59,7 +60,7 @@ const styles = theme => ({
   },
   startButton: {
     borderRadius: 16,
-    fontSize: 36,
+    fontSize: 30,
     marginRight: 0,
     marginTop: 8,
     marginBottom: 8,
@@ -85,6 +86,14 @@ const styles = theme => ({
     justifyContent: 'center',
     alignItems: 'center',
     height: 376,
+  },
+  questionDisplaySection: {
+    display: 'flex',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    height: 376,
+    width: '90%',
   },
   videoSection: {
     display: 'flex',
@@ -122,7 +131,7 @@ class Experiment extends Component {
       currentVideoIndex: 1,
       currentVideo: tmp[0][0],
       currentVideoInterval: 3000,
-      disabled: true,
+      // disabled: true,
       // left: false,
       // leftVideo: 'fake',
       overclick: false,
@@ -132,9 +141,12 @@ class Experiment extends Component {
       // rightVideo: 'real',
       showGame: false,
       showQuestion: false,
+      showSubmit: false,
+      showEnd: false,
       time: performance.now(),
       timer: performance.now(),
-      times: [],
+      // times: [],
+      response_times: [],
       videoChoices: [],
       videoDistance: 32,
       videoSize: 360,
@@ -142,10 +154,6 @@ class Experiment extends Component {
       maxLevels: Object.keys(tmp).length,
       maxImages: tmp[0].length,
     };
-
-
-    console.log("constructor called")
-    console.log(tmp[0])
 
 
     this._loadNextVideo = this._loadNextVideo.bind(this);
@@ -210,7 +218,6 @@ class Experiment extends Component {
     return result;
   }
 
-
   _handleClick(e) {
     this.setState({anchorEl: e.currentTarget});
   }
@@ -223,7 +230,7 @@ class Experiment extends Component {
   // _handleKeyDown = (event) => {
   //   document.removeEventListener("keydown", this._handleKeyDown);
   //   console.log(this.state.videoChoices);
-  //   if (this.state.percent === 100) { return; }
+  //   if (this.state.percentLevelCompletion === 100) { return; }
   //   switch(event.keyCode) {
   //     case 32:
   //       this._handleNullify();
@@ -246,7 +253,7 @@ class Experiment extends Component {
   //   this.state.videoChoices.push({'choice': this.state.leftVideo, 'left': this.state.leftVideo, 'right': this.state.rightVideo, 'videoPair': this.state.currentVideoPair});
   //   this.setState({
   //     left: true,
-  //     percent: this.state.percent + 100/this.state.maxImages,
+  //     percentLevelCompletion: this.state.percentLevelCompletion + 100/this.state.maxImages,
   //   });
   //   setTimeout(() => this._loadNextVideo(), 500);
   // }
@@ -260,20 +267,19 @@ class Experiment extends Component {
   //   this.state.videoChoices.push({'choice': this.state.rightVideo, 'left': this.state.leftVideo, 'right': this.state.rightVideo, 'videoPair': this.state.currentVideoPair});
   //   this.setState({
   //     right: true,
-  //     percent: this.state.percent + 100/this.state.maxImages,
+  //     percentLevelCompletion: this.state.percentLevelCompletion + 100/this.state.maxImages,
   //   });
   //   setTimeout(() => this._loadNextVideo(), 500);
   // }
 
 
   _handleStartButton() {
+    // Handles the start button: starts countdown and shows first deepfake
 
     console.log("entering _handleStartButton")
     console.log(this.state.buttonText )
 
     if (this.state.buttonText !== 'START') { return; }
-
-    console.log(this.state)
 
     this.setState({buttonText: 3})
     setTimeout(() => this.setState({buttonText: 2}), 1000);
@@ -285,38 +291,44 @@ class Experiment extends Component {
 
   }
 
-
   _handleYesButton() {
+    // This handles the YES option after deepfakes are shown
     let response_time = performance.now() - this.state.timer
-    this.state.times.push(response_time);
+    this.state.response_times.push(response_time);
     this.state.videoChoices.push({'response': 'yes', 'response_time': response_time, 'video': this.state.currentVideo});
+    console.log(`this.state.percentLevelCompletion: ${this.state.percentLevelCompletion}`)
+    console.log(`this.state.maxImages: ${this.state.maxImages}`)
+
     this.setState({
-      percent: this.state.percent + 100/this.state.maxImages,
+      percentLevelCompletion: this.state.percentLevelCompletion + 100/this.state.maxImages,
     });
     setTimeout(() => this._loadNextVideo(), 500);
   }
 
+
   _handleNoButton() {
+    // This handles the NO option after deepfakes are shown
+    // Should start a new deepfake showingright after this one
     let response_time = performance.now() - this.state.timer
-    this.state.times.push(response_time);
+    this.state.response_times.push(response_time);
     this.state.videoChoices.push({'response': 'no', 'response_time': response_time, 'video': this.state.currentVideo});
     this.setState({
-      percent: this.state.percent + 100/this.state.maxImages,
+      percentLevelCompletion: this.state.percentLevelCompletion + 100/this.state.maxImages,
     });
     setTimeout(() => this._loadNextVideo(), 500);
 
   }
 
   _handleSubmitButton() {
-    if (this.state.buttonText === "NEXT LEVEL") {
-      this.setState({showGame: false, buttonText: "3 | Please focus on the fixation cross"});
-      setTimeout(() => this.setState({buttonText: "2 | Please focus on the fixation cross"}), 1000);
-      setTimeout(() => this.setState({buttonText: "1 | Please focus on the fixation cross"}), 2000);
-      setTimeout(() => this._loadNextLevel(), 3000);
-    } else if (this.state.buttonText === "SUBMIT") {
-      var res = {'videoChoices': this.state.videoChoices, 'times': this.state.times, 'nullify': this.state.nullify};
+    // This handles the submit button logic
+    console.log("entering _handleSubmitButton")
+    if (this.state.currentLevel < this.state.maxLevels) {
+      this._loadNextLevel();
+    } else {
+      console.log("entering SUBMIT portion of _handleSubmitButton")
+      var res = {'videoChoices': this.state.videoChoices, 'response_times': this.state.reponse_times};
       var myJSON = JSON.stringify(res);
-      this.setState({disabled: true, overclick: true});
+      this.setState({showSubmit: false, showQuestion: false, showEnd: true, disabled: true});
       dbx.filesUpload({path: '/' + this._makeid(20) + '.json', contents: myJSON})
        .then(function(response) {
          alert("Thank you for completing the game.");
@@ -327,21 +339,18 @@ class Experiment extends Component {
     }
   }
 
-  // _handleNullify() {
-  //   this.setState({overclick: true});
-  //   this.state.nullify.push([this.state.currentLevel, this.state.currentVideoIndex]);
-  //   this.state.times.push(performance.now() - this.state.timer);
-  //   this.state.videoChoices.push({'choice': 'null', 'left': this.state.leftVideo, 'right': this.state.rightVideo, 'videoPair': this.state.currentVideo});
-  //   this.setState({
-  //     percent: this.state.percent + 100/this.state.maxImages,
-  //   });
-  //   setTimeout(() => this._loadNextVideoPair(), 500);
-  // }
-
 
   _loadNextVideo() {
+    // Loads next video after clicking a Yes or a No inside a level
+    // If there are no more videos, show submit button and return
+
     if (this.state.percentLevelCompletion === 100) {
-      this.setState({disabled: false});
+      if (this.state.currentLevel < this.state.maxLevels) {
+        this.setState({buttonText: "NEXT LEVEL"});
+      } else {
+        this.setState({buttonText: "SUBMIT"});
+      }
+      this.setState({showSubmit: true});
       return;
     }
     var video = this.state.videoData[this.state.currentLevel-1][this.state.currentVideoIndex];
@@ -367,27 +376,27 @@ class Experiment extends Component {
   }
 
   _loadNextLevel() {
-    document.addEventListener("keydown", this._handleKeyDown);
+    console.log("entering _loadNextLevel")
     this.setState({
       currentLevel: this.state.currentLevel + 1,
       percentLevelCompletion: 0,
       showGame: true,
       buttonText: 'NEXT LEVEL',
       timer: performance.now(),
-      disabled: true,
+      showSubmit: false,
       currentVideoIndex: 0,
     }, () => this._loadNextVideo())
-    if (this.state.currentLevel >= this.state.maxLevels) {
-      this.setState({buttonText: 'SUBMIT'})
-    }
+    // if (this.state.currentLevel >= this.state.maxLevels) {
+    //   this.setState({buttonText: 'SUBMIT'})
+    // }
   }
 
   render() {
     const {classes} = this.props;
-    const { buttonText, disabled, currentLevel,
-            percentLevelCompletion, showGame, showQuestion,
+    const { buttonText, currentLevel,
+            percentLevelCompletion, showGame, showQuestion, showSubmit,
             currentVideo,
-            videoSize, videoDistance, overclick,
+            videoSize, videoDistance, showEnd, disabled,
             maxLevels, anchorEl } = this.state;
     const open = Boolean(anchorEl);
     const id = open ? 'simple-popover' : undefined;
@@ -395,7 +404,7 @@ class Experiment extends Component {
     return (
       <div className={classes.root}>
         <div className={classes.progressSection}>
-          <Typography variant="h2" gutterBottom>
+          <Typography variant="h2" gutterBottom align="center" style={{fontSize: "40px"}}>
             Timed Deepfake Detection Experiment
           </Typography>
           <Button id="instruction-button" variant="contained" color="primary" onClick={this._handleClick}>Instructions</Button>
@@ -432,7 +441,7 @@ class Experiment extends Component {
             </Typography>
             <Progress
               style={{width: '70%', marginLeft: 8}}
-              percentLevelCompletion={Math.ceil(percentLevelCompletion)}
+              percent={Math.ceil(percentLevelCompletion)}
               theme={{
                 active: {
                   symbol: Math.ceil(percentLevelCompletion) + '%',
@@ -490,65 +499,59 @@ class Experiment extends Component {
 
           }
           {
-            showQuestion &&
+            showQuestion && !showSubmit &&
 
           <React.Fragment>
-            <h2> Was the video fake? </h2>
-            <div className={classes.videoContainer}>
-            <Button variant="contained" className={classes.startButton} onClick={this._handleYesButton} style={{margin:32}}>
-              Yes
-            </Button>
-            <Button variant="contained" className={classes.startButton} onClick={this._handleNoButton} style={{margin:32}}>
-              No
-            </Button>
+            <div className={classes.questionDisplaySection}>
+              <h2> Was the video fake? </h2>
+              <div className={classes.videoContainer}>
+              <Button variant="contained" className={classes.startButton} onClick={this._handleYesButton} style={{margin:32}}>
+                Yes
+              </Button>
+              <Button variant="contained" className={classes.startButton} onClick={this._handleNoButton} style={{margin:32}}>
+                No
+              </Button>
+              </div>
             </div>
           </React.Fragment>
+
 
         }
 
         {
-          !showGame && !showQuestion &&
-          <img src={PlusIcon} className={classes.fixationCross}
+          !showGame && !showQuestion && !showEnd &&
+            <div className={classes.questionDisplaySection}>
+              <img src={PlusIcon} className={classes.fixationCross}
                style={{marginLeft: videoDistance, marginRight: videoDistance}}/>
+            </div>
         }
 
         </div>
 
         <div className={classes.bottomSection}>
-            {
-              showGame &&
-            <div style={{display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center'}}>
-            {
-              // currentLevel === 1 ?
-              // <React.Fragment>
-              //   <Typography variant="h4">WARM-UP RUN</Typography>
-              //   {/*}<Typography variant="caption" gutterBottom>
-              //     Adjust video distance from fixation cross: {videoDistance}px
-              //   </Typography>
-              //   <Slider style={{marginTop: 16, width: '40%'}} min={0} max={64} defaultValue={videoDistance} handle={handle}
-              //   onAfterChange={(val) => this.setState({videoDistance: val})} /> */}
-              // </React.Fragment>
-              // : <React.Fragment />
-            }
-              <div style={{display: 'flex', flexDirection: 'row'}}>
-                <Button disabled={disabled} variant="contained" className={classes.startButton} onClick={this._handleSubmitButton}>
-                  {buttonText}
-                </Button>
-                {// <Button disabled={overclick || !disabled} variant="contained" className={classes.gazeButton} onClick={this._handleNullify}>
-                //   shifted gaze
-                // </Button>
-                }
-              </div>
-            </div>
-          }
           {
-            !showGame && !showQuestion &&
+            !showGame && !showQuestion && !showEnd &&
             <div style={{display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center'}}>
-              <Button variant="contained" className={classes.startButton} onClick={this._handleStartButton}>
+              <Button disabled={disabled} variant="contained" className={classes.startButton} onClick={this._handleStartButton}>
                 {buttonText}
               </Button>
             </div>
-
+          }
+          {
+            showSubmit &&
+            <div style={{display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center'}}>
+              <Button disabled={disabled} variant="contained" className={classes.startButton} onClick={this._handleSubmitButton}>
+                {buttonText}
+              </Button>
+            </div>
+          }
+          {
+            showEnd &&
+            <div style={{display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center'}}>
+              <Typography variant="h5">
+                Thank you for completing the game!
+              </Typography> 
+            </div>
           }
 
         </div>
