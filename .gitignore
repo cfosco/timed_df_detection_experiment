@@ -1,3 +1,6 @@
+# Notebook
+*.ipynb_checkpoints
+
 # Logs
 logs
 *.log

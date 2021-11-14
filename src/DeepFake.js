@@ -9,7 +9,7 @@ import { Progress } from 'react-sweet-progress';
 import "react-sweet-progress/lib/style.css";
 
 import PlusIcon from './plus.png';
-import tmp from './timed_exp_test.json';
+import tmp from '.jsons/timed_exp_test.json';
 
 import { Dropbox } from 'dropbox';
 const accessToken = 'sl.A8Q-9WfT_O8acNTt_T6RMM8CAfI46PqcmDdj9Spw2W5Kv5yWFXeg3cV2zGZyDMAUSj3-SXpcFz1vx2lXiLoqLSrqfoa7yfns7w-HsE6X__qTCvsxXW3u1RxUQAuxpRK3t-aDR3Q';
