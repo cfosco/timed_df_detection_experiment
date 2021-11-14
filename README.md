@@ -1,6 +1,9 @@
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+# Timed Deepfake Detection Experiment
 
-## Available Scripts
+Code for the timed deepfake detection experiment, part of the Deepfake Caricatures Project. The objective of this experiment is to measure human hit rate on fakes and caricatures at different presentation times, to observe if cariatures tend to increase human detection performance even when fakes are shown for fractions of a second.
+
+
+## Node scripts
 
 In the project directory, you can run:
 
