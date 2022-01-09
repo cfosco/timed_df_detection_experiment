@@ -9,7 +9,7 @@ import { Progress } from 'react-sweet-progress';
 import "react-sweet-progress/lib/style.css";
 
 import PlusIcon from './plus.png';
-import tmp from '.jsons/timed_exp_test.json';
+import tmp from './jsons/json_4.json';
 
 import { Dropbox } from 'dropbox';
 const accessToken = 'sl.A8Q-9WfT_O8acNTt_T6RMM8CAfI46PqcmDdj9Spw2W5Kv5yWFXeg3cV2zGZyDMAUSj3-SXpcFz1vx2lXiLoqLSrqfoa7yfns7w-HsE6X__qTCvsxXW3u1RxUQAuxpRK3t-aDR3Q';
@@ -129,30 +129,34 @@ class Experiment extends Component {
       buttonText: 'START',
       currentLevel: 1,
       currentVideoIndex: 1,
-      currentVideo: tmp[0][0],
-      currentVideoInterval: 3000,
+      currentVideo: tmp["level0"][0]["url"],
+      currentVideoInterval: tmp["level0"][0]["time"],
+      currentVideoLabel: tmp["level0"][0]["label"],
       // disabled: true,
       // left: false,
       // leftVideo: 'fake',
       overclick: false,
       // nullify: [],
-      percentLevelCompletion: Math.round(Math.min((0) / tmp[0].length * 100, 100)),
+      percentLevelCompletion: Math.round(Math.min((0) / tmp["level0"].length * 100, 100)),
       // right: false,
       // rightVideo: 'real',
       showGame: false,
       showQuestion: false,
       showSubmit: false,
       showEnd: false,
+      showButton: false,
+      // showVideo: false,
+      startLoadingVideo: false,
       time: performance.now(),
       timer: performance.now(),
       // times: [],
       response_times: [],
       videoChoices: [],
-      videoDistance: 32,
+      // videoDistance: 32,
       videoSize: 360,
       videoData: tmp,
       maxLevels: Object.keys(tmp).length,
-      maxImages: tmp[0].length,
+      maxImages: tmp["level0"].length,
     };
 
 
@@ -311,7 +315,7 @@ class Experiment extends Component {
     // Should start a new deepfake showingright after this one
     let response_time = performance.now() - this.state.timer
     this.state.response_times.push(response_time);
-    this.state.videoChoices.push({'response': 'no', 'response_time': response_time, 'video': this.state.currentVideo});
+    this.state.videoChoices.push({'response': 'no', 'response_time': response_time, 'video': this.state.currentVideo, 'pres_time': this.state.currentVideoInterval, 'label':this.state.currentVideoLabel});
     this.setState({
       percentLevelCompletion: this.state.percentLevelCompletion + 100/this.state.maxImages,
     });
@@ -326,8 +330,8 @@ class Experiment extends Component {
       this._loadNextLevel();
     } else {
       console.log("entering SUBMIT portion of _handleSubmitButton")
-      var res = {'videoChoices': this.state.videoChoices, 'response_times': this.state.reponse_times};
-      var myJSON = JSON.stringify(res);
+      // var res = {'videoChoices': this.state.videoChoices, 'response_times': this.state.reponse_times};
+      var myJSON = JSON.stringify(this.state.videoChoices);
       this.setState({showSubmit: false, showQuestion: false, showEnd: true, disabled: true});
       dbx.filesUpload({path: '/' + this._makeid(20) + '.json', contents: myJSON})
        .then(function(response) {
@@ -353,10 +357,18 @@ class Experiment extends Component {
       this.setState({showSubmit: true});
       return;
     }
-    var video = this.state.videoData[this.state.currentLevel-1][this.state.currentVideoIndex];
-    if(video === undefined) {
+    var videoData = this.state.videoData["level"+(this.state.currentLevel-1)][this.state.currentVideoIndex];
+
+    if(videoData === undefined) {
       return;
     }
+
+    this.setState({currentVideo: videoData["url"],
+      currentVideoInterval: videoData["time"],
+      currentVideoLabel: videoData["label"],
+      currentVideoIndex: this.state.currentVideoIndex + 1})
+
+    this.setState({showGame: true, showQuestion: false, overclick: false});
 
     this.setState({showGame: false, showQuestion: false, buttonText: "3 | Please focus on the fixation cross"});
     setTimeout(() => this.setState({buttonText: "2 | Please focus on the fixation cross"}), 1000);
@@ -365,12 +377,18 @@ class Experiment extends Component {
       showGame: true,
       showQuestion: false,
       timer: performance.now(),
-      currentVideo: video,
-      currentVideoIndex: this.state.currentVideoIndex + 1,
+      // currentVideo: videoData["url"],
+      // currentVideoInterval: videoData["time"],
+      // currentVideoLabel: videoData["label"],
+      // currentVideoIndex: this.state.currentVideoIndex + 1,
       overclick: false,
     }), 3000);
 
-    setTimeout(() => this.setState({showGame: false, showQuestion: true}), this.state.currentVideoInterval + 3000)
+    // setTimeout(() => this.setState({showVideo: true}), 4000);
+    
+    console.log(videoData)
+    console.log("current video interval: " + this.state.currentVideoInterval)
+    // setTimeout(() => this.setState({showGame: false, showQuestion: true}), this.state.currentVideoInterval + 3000)
 
     // document.addEventListener("keydown", this._handleKeyDown);
   }
@@ -394,7 +412,7 @@ class Experiment extends Component {
   render() {
     const {classes} = this.props;
     const { buttonText, currentLevel,
-            percentLevelCompletion, showGame, showQuestion, showSubmit,
+            percentLevelCompletion, showGame, showQuestion, showSubmit, showButton,
             currentVideo,
             videoSize, videoDistance, showEnd, disabled,
             maxLevels, anchorEl } = this.state;
@@ -464,6 +482,7 @@ class Experiment extends Component {
                 <div className={classes.videoContainer}
                      style={{width: videoSize, height: videoSize}}>
                   <video
+                    preload="auto"
                     id="main-video"
                     style={{height: videoSize}}
                     src={currentVideo}
@@ -471,30 +490,28 @@ class Experiment extends Component {
                     autoPlay
                     loop
                     muted
+                    onLoadStart={() => {
+                      console.log('...I am loading...')
+                      // this.setState({ videoSize: 0 });
+                      // this.setState({showGame:false, showQuestion:false, buttonText: "3 | Please focus on the fixation cross"});
+                      // setTimeout(() => this.setState({buttonText: "2 | Please focus on the fixation cross"}), 1000);
+                      // setTimeout(() => this.setState({buttonText: "1 | Please focus on the fixation cross"}), 2000);
+                      // setTimeout(() => this.setState({
+                      //   showGame: true,
+                      //   showQuestion: false,
+                      //   timer: performance.now(),
+                      //   overclick: false,
+                      // }), 3000);
+                    }}
+                    onLoadedData={() => {
+                        console.log('Data is loaded!')
+                        // this.setState({ videoSize: 360 });
+                        setTimeout(() => this.setState({showGame: false, showQuestion: true}), this.state.currentVideoInterval);
+                    }}
                     />
                 </div>
-                {// <img src={PlusIcon} className={classes.fixationCross}
-                //      style={{marginLeft: videoDistance, marginRight: videoDistance}}/>
-                // <div className={right ? classes.videoContainerSelected : classes.videoContainer}
-                //      style={{width: videoSize, height: videoSize}}>
-                //   <video
-                //     id="right-video"
-                //     style={{height: videoSize}}
-                //     src={currentVideo[rightVideo]}
-                //     type="video/mp4"
-                //     autoPlay
-                //     loop
-                //     muted
-                //     />
-                // </div>
-              }
-
+                
               </div>
-              {/* <Slider style={{marginTop: 32, width: '40%'}} min={64} max={320} defaultValue={videoSize} handle={handle}
-                      onAfterChange={(val) => this.setState({videoSize: val})} /> */}
-              {/* <Typography variant="caption" gutterBottom>
-                Adjust video display size: {videoSize}px
-              </Typography> */}
             </React.Fragment>
 
           }
