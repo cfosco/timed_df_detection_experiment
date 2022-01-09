@@ -156,7 +156,7 @@ class Experiment extends Component {
       videoSize: 360,
       videoData: tmp,
       maxLevels: Object.keys(tmp).length,
-      maxImages: tmp["level0"].length,
+      maxVideos: tmp["level0"].length,
     };
 
 
@@ -186,7 +186,7 @@ class Experiment extends Component {
       var data = require('./' + file);
       this.setState({videoData: data}, () => this.setState({
         maxLevels: Object.keys(this.state.videoData).length,
-        maxImages: this.state.videoData[0].length,
+        maxVideos: this.state.videoData[0].length,
         percentLevelCompletion: Math.round(Math.min((0) / this.state.videoData[0].length * 100, 100)),
         currentVideo: this.state.videoData[0][0],
       }))
@@ -231,52 +231,6 @@ class Experiment extends Component {
   }
 
 
-  // _handleKeyDown = (event) => {
-  //   document.removeEventListener("keydown", this._handleKeyDown);
-  //   console.log(this.state.videoChoices);
-  //   if (this.state.percentLevelCompletion === 100) { return; }
-  //   switch(event.keyCode) {
-  //     case 32:
-  //       this._handleNullify();
-  //       break;
-  //     case 37: // Left arrow keycode
-  //       this._handleLeftKeyPressed();
-  //       break;
-  //     case 39: // Right arrow keycode
-  //       this._handleRightKeyPressed();
-  //       break;
-  //     default:
-  //       document.addEventListener("keydown", this._handleKeyDown);
-  //       break
-  //   }
-  // }
-  //
-  // _handleLeftKeyPressed() {
-  //   // this.state.times.push(performance.now() - this.state.timer);
-  //
-  //   this.state.videoChoices.push({'choice': this.state.leftVideo, 'left': this.state.leftVideo, 'right': this.state.rightVideo, 'videoPair': this.state.currentVideoPair});
-  //   this.setState({
-  //     left: true,
-  //     percentLevelCompletion: this.state.percentLevelCompletion + 100/this.state.maxImages,
-  //   });
-  //   setTimeout(() => this._loadNextVideo(), 500);
-  // }
-  //
-  // _loadChoiceScreen() {
-  //
-  // }
-  //
-  // _handleRightKeyPressed() {
-  //   this.state.times.push(performance.now() - this.state.timer);
-  //   this.state.videoChoices.push({'choice': this.state.rightVideo, 'left': this.state.leftVideo, 'right': this.state.rightVideo, 'videoPair': this.state.currentVideoPair});
-  //   this.setState({
-  //     right: true,
-  //     percentLevelCompletion: this.state.percentLevelCompletion + 100/this.state.maxImages,
-  //   });
-  //   setTimeout(() => this._loadNextVideo(), 500);
-  // }
-
-
   _handleStartButton() {
     // Handles the start button: starts countdown and shows first deepfake
 
@@ -300,11 +254,9 @@ class Experiment extends Component {
     let response_time = performance.now() - this.state.timer
     this.state.response_times.push(response_time);
     this.state.videoChoices.push({'response': 'yes', 'response_time': response_time, 'video': this.state.currentVideo});
-    console.log(`this.state.percentLevelCompletion: ${this.state.percentLevelCompletion}`)
-    console.log(`this.state.maxImages: ${this.state.maxImages}`)
 
     this.setState({
-      percentLevelCompletion: this.state.percentLevelCompletion + 100/this.state.maxImages,
+      percentLevelCompletion: this.state.percentLevelCompletion + 100/this.state.maxVideos,
     });
     setTimeout(() => this._loadNextVideo(), 500);
   }
@@ -317,7 +269,7 @@ class Experiment extends Component {
     this.state.response_times.push(response_time);
     this.state.videoChoices.push({'response': 'no', 'response_time': response_time, 'video': this.state.currentVideo, 'pres_time': this.state.currentVideoInterval, 'label':this.state.currentVideoLabel});
     this.setState({
-      percentLevelCompletion: this.state.percentLevelCompletion + 100/this.state.maxImages,
+      percentLevelCompletion: this.state.percentLevelCompletion + 100/this.state.maxVideos,
     });
     setTimeout(() => this._loadNextVideo(), 500);
 
@@ -415,7 +367,7 @@ class Experiment extends Component {
             percentLevelCompletion, showGame, showQuestion, showSubmit, showButton,
             currentVideo,
             videoSize, videoDistance, showEnd, disabled,
-            maxLevels, anchorEl } = this.state;
+            maxLevels, maxVideos, anchorEl } = this.state;
     const open = Boolean(anchorEl);
     const id = open ? 'simple-popover' : undefined;
 
@@ -442,12 +394,15 @@ class Experiment extends Component {
             }}
           >
             <Typography variant="subtitle1" align="center" style={{padding: 32}}>
-              <b>Instructions:</b> You will be shown short videos of faces. Some of them are deepfakes: the real face has been swapped with a different face. <br />
-              Your task is to determine whether the videos shown are real or deepfakes. <br />
+              <b>Instructions:</b> You will be shown short videos of faces. Some of them are  <t style={{color: "darkblue"}}>deepfakes</t>: the real face has been swapped with a different face. <br />
+              Your task is to determine whether the videos shown are real or deepfakes. Focus on artifacts and search for any distortions in the video to spot the fakes.<br />
+
+              Videos will be shown for <b>varying amounts of time</b>: some of them will appear for 3-5 seconds, 
+              while others will be <b>much faster</b>, and only appear for 300-500 milliseconds. Stay alert! :)<br/>
 
               After seeing a video, you will be asked if what you saw was real or fake. You won't be able to rewatch the video. <br />
 
-              There are 20 levels with 10 videos per level. Each level should take less than a minute. You can take breaks between levels. Good luck!
+              There are {maxLevels} levels with {maxVideos} videos per level. Each level should take less than two minutes. You can take breaks between levels. Good luck!
             </Typography>
           </Popover>
           <Typography variant="h5" style={{marginTop: 32, marginBottom: 12}}>
@@ -483,6 +438,7 @@ class Experiment extends Component {
                      style={{width: videoSize, height: videoSize}}>
                   <video
                     preload="auto"
+                    poster="./plus.png"
                     id="main-video"
                     style={{height: videoSize}}
                     src={currentVideo}
