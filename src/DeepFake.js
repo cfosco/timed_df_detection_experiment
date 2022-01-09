@@ -183,12 +183,14 @@ class Experiment extends Component {
     var identifier = "data=";
     if (url.indexOf(identifier) > 0) {
       var file = url.substring(url.indexOf(identifier) + identifier.length);
-      var data = require('./' + file);
+      console.log("Using file: " + file);
+      var data = require('./jsons/' + file);
       this.setState({videoData: data}, () => this.setState({
         maxLevels: Object.keys(this.state.videoData).length,
-        maxVideos: this.state.videoData[0].length,
-        percentLevelCompletion: Math.round(Math.min((0) / this.state.videoData[0].length * 100, 100)),
-        currentVideo: this.state.videoData[0][0],
+        maxVideos: this.state.videoData["level0"].length,
+        percentLevelCompletion: Math.round(Math.min((0) / this.state.videoData["level0"].length * 100, 100)),
+        currentVideo: this.state.videoData["level0"][0]["url"],
+        currentVideoInterval: this.state.videoData["level0"][0]["time"],
       }))
     }
     document.getElementById('instruction-button').click();
@@ -338,7 +340,7 @@ class Experiment extends Component {
 
     // setTimeout(() => this.setState({showVideo: true}), 4000);
     
-    console.log(videoData)
+    // console.log(videoData)
     console.log("current video interval: " + this.state.currentVideoInterval)
     // setTimeout(() => this.setState({showGame: false, showQuestion: true}), this.state.currentVideoInterval + 3000)
 
