@@ -440,7 +440,7 @@ class Experiment extends Component {
                      style={{width: videoSize, height: videoSize}}>
                   <video
                     preload="auto"
-                    poster="./plus.png"
+                    poster="./src/plus.png"
                     id="main-video"
                     style={{height: videoSize}}
                     src={currentVideo}
