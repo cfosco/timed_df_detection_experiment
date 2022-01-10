@@ -9,10 +9,11 @@ import { Progress } from 'react-sweet-progress';
 import "react-sweet-progress/lib/style.css";
 
 import PlusIcon from './plus.png';
+import PlusIconBig from './plus_big.png';
 import tmp from './jsons/json_4.json';
 
 import { Dropbox } from 'dropbox';
-const accessToken = 'sl.A8Q-9WfT_O8acNTt_T6RMM8CAfI46PqcmDdj9Spw2W5Kv5yWFXeg3cV2zGZyDMAUSj3-SXpcFz1vx2lXiLoqLSrqfoa7yfns7w-HsE6X__qTCvsxXW3u1RxUQAuxpRK3t-aDR3Q';
+const accessToken = 'R8MlER2022sAAAAAAAAAAeAjhJAqaBrMcjUe3EOrJLfcvEXpIQm7PeAigVqKM0hy';
 const dbx = new Dropbox({
   accessToken
 });
@@ -132,27 +133,18 @@ class Experiment extends Component {
       currentVideo: tmp["level0"][0]["url"],
       currentVideoInterval: tmp["level0"][0]["time"],
       currentVideoLabel: tmp["level0"][0]["label"],
-      // disabled: true,
-      // left: false,
-      // leftVideo: 'fake',
       overclick: false,
-      // nullify: [],
       percentLevelCompletion: Math.round(Math.min((0) / tmp["level0"].length * 100, 100)),
-      // right: false,
-      // rightVideo: 'real',
       showGame: false,
       showQuestion: false,
       showSubmit: false,
       showEnd: false,
       showButton: false,
-      // showVideo: false,
       startLoadingVideo: false,
       time: performance.now(),
       timer: performance.now(),
-      // times: [],
       response_times: [],
       videoChoices: [],
-      // videoDistance: 32,
       videoSize: 360,
       videoData: tmp,
       maxLevels: Object.keys(tmp).length,
@@ -173,16 +165,28 @@ class Experiment extends Component {
     // this._handleRightKeyPressed = this._handleRightKeyPressed.bind(this);
     this._handleStartButton = this._handleStartButton.bind(this);
     this._handleSubmitButton = this._handleSubmitButton.bind(this);
-    // this._handleNullify = this._handleNullify.bind(this);
+    this._gup = this._gup.bind(this);
 
+  }
+
+  _gup(name) {
+    var regexS = "[\\?&]" + name + "=([^&#]*)";
+    var regex = new RegExp(regexS);
+    var tmpURL = window.location.href;
+    var results = regex.exec(tmpURL);
+    console.log("results: ", results);
+    if (results == null) return "";
+    else return results[1];
   }
 
 
   componentDidMount(){
     var url = window.location.href;
-    var identifier = "data=";
+    var identifier = "data";
     if (url.indexOf(identifier) > 0) {
-      var file = url.substring(url.indexOf(identifier) + identifier.length);
+      console.log("Trying to locate file");
+      var file = this._gup(identifier);
+      // var file = url.substring(url.indexOf(identifier) + identifier.length);
       console.log("Using file: " + file);
       var data = require('./jsons/' + file);
       this.setState({videoData: data}, () => this.setState({
@@ -241,39 +245,36 @@ class Experiment extends Component {
 
     if (this.state.buttonText !== 'START') { return; }
 
-    this.setState({buttonText: 3})
-    setTimeout(() => this.setState({buttonText: 2}), 1000);
-    setTimeout(() => this.setState({buttonText: 1}), 2000);
+    this.setState({buttonText: "3 | Please focus on the fixation cross"});
+    setTimeout(() => this.setState({buttonText: "2 | Please focus on the fixation cross"}), 1000);
+    setTimeout(() => this.setState({buttonText: "1 | Please focus on the fixation cross"}), 2000);
     setTimeout(() => this.setState({showGame: true, buttonText: 'NEXT LEVEL'}), 3000);
-
-    setTimeout(() => this.setState({showGame: false, showQuestion: true}), this.state.currentVideoInterval + 3000)
-    // setTimeout(() => document.addEventListener("keydown", this._handleKeyDown), 3000);
 
   }
 
   _handleYesButton() {
-    // This handles the YES option after deepfakes are shown
+    // This handles the YES option after video is shown
     let response_time = performance.now() - this.state.timer
     this.state.response_times.push(response_time);
-    this.state.videoChoices.push({'response': 'yes', 'response_time': response_time, 'video': this.state.currentVideo});
+    this.state.videoChoices.push({'response': 'no', 'response_time': response_time, 'video': this.state.currentVideo, 'pres_time': this.state.currentVideoInterval, 'label':this.state.currentVideoLabel});
 
     this.setState({
       percentLevelCompletion: this.state.percentLevelCompletion + 100/this.state.maxVideos,
     });
-    setTimeout(() => this._loadNextVideo(), 500);
+    setTimeout(() => this._loadNextVideo(), 300);
   }
 
 
   _handleNoButton() {
-    // This handles the NO option after deepfakes are shown
-    // Should start a new deepfake showingright after this one
+    // This handles the NO option after video is shown
+    // Should load a new video right after an option is clicked
     let response_time = performance.now() - this.state.timer
     this.state.response_times.push(response_time);
     this.state.videoChoices.push({'response': 'no', 'response_time': response_time, 'video': this.state.currentVideo, 'pres_time': this.state.currentVideoInterval, 'label':this.state.currentVideoLabel});
     this.setState({
       percentLevelCompletion: this.state.percentLevelCompletion + 100/this.state.maxVideos,
     });
-    setTimeout(() => this._loadNextVideo(), 500);
+    setTimeout(() => this._loadNextVideo(), 300);
 
   }
 
@@ -363,6 +364,7 @@ class Experiment extends Component {
     // }
   }
 
+
   render() {
     const {classes} = this.props;
     const { buttonText, currentLevel,
@@ -396,7 +398,7 @@ class Experiment extends Component {
             }}
           >
             <Typography variant="subtitle1" align="center" style={{padding: 32}}>
-              <b>Instructions:</b> You will be shown short videos of faces. Some of them are  <t style={{color: "darkblue"}}>deepfakes</t>: the real face has been swapped with a different face. <br />
+              <b>Instructions:</b> You will be shown short videos of faces. Some of them are  <b style={{color: "darkblue"}}>deepfakes</b>: the real face has been swapped with a different face. <br />
               Your task is to determine whether the videos shown are real or deepfakes. Focus on artifacts and search for any distortions in the video to spot the fakes.<br />
 
               Videos will be shown for <b>varying amounts of time</b>: some of them will appear for 3-5 seconds, 
@@ -440,7 +442,7 @@ class Experiment extends Component {
                      style={{width: videoSize, height: videoSize}}>
                   <video
                     preload="auto"
-                    poster="./src/plus.png"
+                    poster={PlusIconBig}
                     id="main-video"
                     style={{height: videoSize}}
                     src={currentVideo}
@@ -748,7 +750,7 @@ class DeepFake extends Component {
       var res = {'videoChoices': this.state.videoChoices, 'times': this.state.times, 'nullify': this.state.nullify};
       var myJSON = JSON.stringify(res);
       this.setState({disabled: true, overclick: true});
-      dbx.filesUpload({path: '/' + this._makeid(20) + '.json', contents: myJSON})
+      dbx.filesUpload({path: '/' + this._makeid(10) + '.json', contents: myJSON})
        .then(function(response) {
          alert("Thank you for completing the game.");
        })
