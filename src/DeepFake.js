@@ -30,6 +30,13 @@ const styles = theme => ({
     justifyContent: 'space-around',
     flexDirection: 'column',
   },
+  irb: {
+    width: "70%",
+    fontSize: "0.45em",
+    textAlign: "center",
+    color: "gray",
+    padding: 16,
+  },
   bottomSection: {
     display: 'flex',
     justifyContent: 'center',
@@ -166,6 +173,7 @@ class Experiment extends Component {
     this._handleSubmitButton = this._handleSubmitButton.bind(this);
     this._gup = this._gup.bind(this);
     this._submitHITform = this._submitHITform.bind(this);
+    this._addHiddenField = this._addHiddenField.bind(this);
   }
 
   _gup(name) {
@@ -295,6 +303,7 @@ class Experiment extends Component {
     var submitUrl = decodeURIComponent(this._gup("turkSubmitTo")) + MTURK_SUBMIT_SUFFIX;
     var form = $("#submit-form");
 
+    console.log("submitUrl: ", submitUrl);
     console.log("Gup output for assignmentId, workerId:", this._gup("assignmentId"),this._gup("workerId"))
 
     this._addHiddenField(form, 'assignmentId', this._gup("assignmentId"));
@@ -413,15 +422,17 @@ class Experiment extends Component {
             }}
           >
             <Typography variant="subtitle1" align="center" style={{padding: 32}}>
-              <b>Instructions:</b> You will be shown short videos of faces. Some of them are  <b style={{color: "darkblue"}}>deepfakes</b>: the real face has been swapped with a different face. <br />
-              Your task is to determine whether the videos shown are real or deepfakes. Focus on artifacts and search for any distortions in the video to spot the fakes.<br />
-
-              Videos will be shown for <b>varying amounts of time</b>: some of them will appear for 3-5 seconds, 
-              while others will be <b>much faster</b>, and only appear for 300-500 milliseconds. Stay alert! :)<br/>
-
+              <b>Instructions:</b> 
+              You will be shown short videos of faces. Some of them are <b style={{color: "darkblue"}}>deepfakes</b>: the face in the original video has been swapped with a different face by a computer. <br />
+ 
+              <u>Your task is to determine whether the videos shown are real or deepfakes.</u> To spot the deepfakes, look for distortions that make something feel unnatural about the way the faces move or look. <br />
+              
+              Videos will be shown for <b>varying amounts of time</b>: some of them will appear for 3-5 seconds, while others will be <b>much faster</b>, and only appear for 300-500 milliseconds. Stay alert! :) <br />
+              
               After seeing a video, you will be asked if what you saw was real or fake. You won't be able to rewatch the video. <br />
+              
+              There are {maxLevels} levels with {maxVideos} videos per level. Each level should take less than two minutes. You can take breaks between levels. Good luck! 
 
-              There are {maxLevels} levels with {maxVideos} videos per level. Each level should take less than two minutes. You can take breaks between levels. Good luck!
             </Typography>
           </Popover>
           <Typography variant="h5" style={{marginTop: 32, marginBottom: 12}}>
@@ -547,6 +558,16 @@ class Experiment extends Component {
           }
 
         </div>
+
+        <form id="submit-form" name="submit-form">
+        </form>
+        <Typography className={classes.irb} variant="caption">
+          This HIT is part of a MIT scientific research project. Your decision to complete this HIT is voluntary. 
+          There is no way for us to identify you. The only information we will have, in addition to your responses, 
+          is the time at which you completed the study. The results of the research may be presented at scientific 
+          meetings or published in scientific journals. Clicking on the 'SUBMIT' button at the end of the experiment 
+          indicates that you are at least 18 years of age and agree to complete this HIT voluntarily.
+        </Typography>
       </div>
     );
   }
