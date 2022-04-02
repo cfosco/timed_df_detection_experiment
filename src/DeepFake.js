@@ -327,7 +327,7 @@ class Experiment extends Component {
     // Loads next video after clicking a Yes or a No inside a level
     // If there are no more videos, show submit button and return
 
-    if (this.state.percentLevelCompletion === 100) {
+    if (Math.round(this.state.percentLevelCompletion) === 100) {
       if (this.state.currentLevel < this.state.maxLevels) {
         this.setState({buttonText: "NEXT LEVEL"});
       } else {
@@ -430,6 +430,47 @@ class Experiment extends Component {
               Videos will be shown for <b>varying amounts of time</b>: some of them will appear for 3-5 seconds, while others will be <b>much faster</b>, and only appear for 300-500 milliseconds. Stay alert! :) <br />
               
               After seeing a video, you will be asked if what you saw was real or fake. You won't be able to rewatch the video. <br />
+
+              <br/>
+              <b>The videos you will be shown will look like the ones below.</b> Be vigilant: some fake videos look a lot like real ones! 
+              Use the examples below as references to try to spot fakes as best you can.
+              <br />
+
+              <video
+                    preload="auto"
+                    poster={PlusIconBig}
+                    id="main-video"
+                    style={{height: videoSize}}
+                    src="http://visiongpu23.csail.mit.edu/scratch/datasets/DeepfakeDetection/facenet_smooth_frames/dfdc_train_part_0/aymlynzeni.mp4/face_0.mp4"
+                    type="video/mp4"
+                    autoPlay
+                    loop
+                    muted
+              />
+              <video
+                    preload="auto"
+                    poster={PlusIconBig}
+                    id="main-video"
+                    style={{height: videoSize}}
+                    src="http://visiongpu23.csail.mit.edu/scratch/datasets/DeepfakeDetection/facenet_smooth_frames/dfdc_train_part_1/wgzrhqihqt.mp4/face_0.mp4"
+                    type="video/mp4"
+                    autoPlay
+                    loop
+                    muted
+              />
+              <video
+                    preload="auto"
+                    poster={PlusIconBig}
+                    id="main-video"
+                    style={{height: videoSize}}
+                    src="http://visiongpu23.csail.mit.edu/scratch/datasets/DeepfakeDetection/facenet_smooth_frames/dfdc_train_part_2/jtuiddncpo.mp4/face_0.mp4"
+                    type="video/mp4"
+                    autoPlay
+                    loop
+                    muted
+              />
+
+              <br/>
               
               There are {maxLevels} levels with {maxVideos} videos per level. Each level should take less than two minutes. You can take breaks between levels. Good luck! 
 
