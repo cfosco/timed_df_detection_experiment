@@ -255,7 +255,7 @@ class Experiment extends Component {
     // This handles the YES option after video is shown
     let response_time = performance.now() - this.state.timer
     this.state.response_times.push(response_time);
-    this.state.videoChoices.push({'response': 'no', 'response_time': response_time, 'video': this.state.currentVideo, 'pres_time': this.state.currentVideoInterval, 'label':this.state.currentVideoLabel});
+    this.state.videoChoices.push({'response': 'yes', 'response_time': response_time, 'video': this.state.currentVideo, 'pres_time': this.state.currentVideoInterval, 'label':this.state.currentVideoLabel});
 
     this.setState({
       percentLevelCompletion: this.state.percentLevelCompletion + 100/this.state.maxVideos,
