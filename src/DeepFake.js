@@ -248,7 +248,6 @@ class Experiment extends Component {
     setTimeout(() => this.setState({buttonText: "2 | Please focus on the fixation cross"}), 1000);
     setTimeout(() => this.setState({buttonText: "1 | Please focus on the fixation cross"}), 2000);
     setTimeout(() => this.setState({showGame: true, buttonText: 'NEXT LEVEL'}), 3000);
-
   }
 
   _handleYesButton() {
