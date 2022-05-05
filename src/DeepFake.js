@@ -195,7 +195,7 @@ class Experiment extends Component {
       var file = this._gup(identifier);
       // var file = url.substring(url.indexOf(identifier) + identifier.length);
       console.log("Using file: " + file);
-      var data = require('./jsons/' + file);
+      var data = require('./jsons_2vig/' + file);
       this.setState({videoData: data}, () => this.setState({
         maxLevels: Object.keys(this.state.videoData).length,
         maxVideos: this.state.videoData["level0"].length,
