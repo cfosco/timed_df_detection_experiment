@@ -167,8 +167,8 @@ class Experiment extends Component {
 
     this._handleClick = this._handleClick.bind(this);
     this._handleClose = this._handleClose.bind(this);
-    this._handleYesButton = this._handleYesButton.bind(this);
-    this._handleNoButton = this._handleNoButton.bind(this);  
+    this._handleFakeButton = this._handleFakeButton.bind(this);
+    this._handleRealButton = this._handleRealButton.bind(this);  
     this._handleStartButton = this._handleStartButton.bind(this);
     this._handleSubmitButton = this._handleSubmitButton.bind(this);
     this._gup = this._gup.bind(this);
@@ -250,11 +250,11 @@ class Experiment extends Component {
     setTimeout(() => this.setState({showGame: true, buttonText: 'NEXT LEVEL'}), 3000);
   }
 
-  _handleYesButton() {
-    // This handles the YES option after video is shown
+  _handleFakeButton() {
+    // This handles the FAKE option after video is shown
     let response_time = performance.now() - this.state.timer
     this.state.response_times.push(response_time);
-    this.state.videoChoices.push({'response': 'yes', 'response_time': response_time, 'video': this.state.currentVideo, 'pres_time': this.state.currentVideoInterval, 'label':this.state.currentVideoLabel});
+    this.state.videoChoices.push({'response': 'FAKE', 'response_time': response_time, 'video': this.state.currentVideo, 'pres_time': this.state.currentVideoInterval, 'label':this.state.currentVideoLabel});
 
     this.setState({
       percentLevelCompletion: this.state.percentLevelCompletion + 100/this.state.maxVideos,
@@ -263,12 +263,12 @@ class Experiment extends Component {
   }
 
 
-  _handleNoButton() {
-    // This handles the NO option after video is shown
+  _handleRealButton() {
+    // This handles the REAL option after video is shown
     // Should load a new video right after an option is clicked
     let response_time = performance.now() - this.state.timer
     this.state.response_times.push(response_time);
-    this.state.videoChoices.push({'response': 'no', 'response_time': response_time, 'video': this.state.currentVideo, 'pres_time': this.state.currentVideoInterval, 'label':this.state.currentVideoLabel});
+    this.state.videoChoices.push({'response': 'REAL', 'response_time': response_time, 'video': this.state.currentVideo, 'pres_time': this.state.currentVideoInterval, 'label':this.state.currentVideoLabel});
     this.setState({
       percentLevelCompletion: this.state.percentLevelCompletion + 100/this.state.maxVideos,
     });
@@ -323,7 +323,7 @@ class Experiment extends Component {
   }
 
   _loadNextVideo() {
-    // Loads next video after clicking a Yes or a No inside a level
+    // Loads next video after clicking a REAL or FAKE button inside a level
     // If there are no more videos, show submit button and return
 
     if (Math.round(this.state.percentLevelCompletion) === 100) {
@@ -546,13 +546,13 @@ class Experiment extends Component {
 
           <React.Fragment>
             <div className={classes.questionDisplaySection}>
-              <h2> Was the video fake? </h2>
+              <h2> Was the video fake or real? </h2>
               <div className={classes.videoContainer}>
-              <Button variant="contained" className={classes.startButton} onClick={this._handleYesButton} style={{margin:32}}>
-                Yes
+              <Button variant="contained" className={classes.startButton} onClick={this._handleFakeButton} style={{margin:32}}>
+                Fake
               </Button>
-              <Button variant="contained" className={classes.startButton} onClick={this._handleNoButton} style={{margin:32}}>
-                No
+              <Button variant="contained" className={classes.startButton} onClick={this._handleRealButton} style={{margin:32}}>
+                Real
               </Button>
               </div>
             </div>
