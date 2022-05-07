@@ -10,7 +10,7 @@ import "react-sweet-progress/lib/style.css";
 
 import PlusIcon from './plus.png';
 import PlusIconBig from './plus_big.png';
-import tmp from './jsons/json_0.json';
+import tmp from './jsons_2vig/json_0.json';
 import $ from 'jquery';
 
 import { Dropbox } from 'dropbox';
@@ -181,7 +181,6 @@ class Experiment extends Component {
     var regex = new RegExp(regexS);
     var tmpURL = window.location.href;
     var results = regex.exec(tmpURL);
-    console.log("results: ", results);
     if (results == null) return "";
     else return results[1];
   }
@@ -193,17 +192,22 @@ class Experiment extends Component {
     if (url.indexOf(identifier) > 0) {
       console.log("Trying to locate file");
       var file = this._gup(identifier);
-      // var file = url.substring(url.indexOf(identifier) + identifier.length);
-      console.log("Using file: " + file);
+      console.log("Using json file: " + file);
       var data = require('./jsons_2vig/' + file);
-      this.setState({videoData: data}, () => this.setState({
+      // console.log(data)
+      this.state.videoData = data
+      this.setState({
         maxLevels: Object.keys(this.state.videoData).length,
         maxVideos: this.state.videoData["level0"].length,
         percentLevelCompletion: Math.round(Math.min((0) / this.state.videoData["level0"].length * 100, 100)),
         currentVideo: this.state.videoData["level0"][0]["url"],
         currentVideoInterval: this.state.videoData["level0"][0]["time"],
-      }))
+      })
     }
+    else {
+      console.log("USING DEFAULT JSON FILE (./jsons_2vig/json_0.json)");
+    }
+    console.log("Using the following video data for this HIT: ", this.state.videoData);
     document.getElementById('instruction-button').click();
   }
 
@@ -238,16 +242,18 @@ class Experiment extends Component {
     // Handles the start button: starts countdown and shows first deepfake
 
     console.log("entering _handleStartButton")
-    console.log(this.state.buttonText )
+    // console.log(this.state.buttonText )
 
     if (this.state.buttonText !== 'START') { return; }
 
-    console.log(this.state.currentVideoInterval)
+    console.log(this.state.currentVideo)
+    console.log(this.state)
+
 
     this.setState({buttonText: "3 | Please focus on the fixation cross"});
     setTimeout(() => this.setState({buttonText: "2 | Please focus on the fixation cross"}), 1000);
     setTimeout(() => this.setState({buttonText: "1 | Please focus on the fixation cross"}), 2000);
-    setTimeout(() => this.setState({showGame: true, buttonText: 'NEXT LEVEL'}), 3000);
+    setTimeout(() => this.setState({showGame: true, buttonText: 'NEXT LEVEL', timer: performance.now()}), 3000);
   }
 
   _handleFakeButton() {
@@ -327,6 +333,7 @@ class Experiment extends Component {
     // If there are no more videos, show submit button and return
 
     if (Math.round(this.state.percentLevelCompletion) === 100) {
+      console.log("Level completed. Loading next level")
       if (this.state.currentLevel < this.state.maxLevels) {
         this.setState({buttonText: "NEXT LEVEL"});
       } else {
@@ -335,19 +342,26 @@ class Experiment extends Component {
       this.setState({showSubmit: true});
       return;
     }
+
+
+    console.log("entering _loadNextVideo")
     var videoData = this.state.videoData["level"+(this.state.currentLevel-1)][this.state.currentVideoIndex];
+
+    console.log("New video loaded: ", videoData)
 
     if(videoData === undefined) {
       return;
     }
 
+    // Setting the current video data into the state
     this.setState({currentVideo: videoData["url"],
       currentVideoInterval: videoData["time"],
       currentVideoLabel: videoData["label"],
       currentVideoIndex: this.state.currentVideoIndex + 1})
 
-    this.setState({showGame: true, showQuestion: false, overclick: false});
+    // this.setState({showGame: true, showQuestion: false, overclick: false});
 
+    // Hiding the Game and showing button countdown
     this.setState({showGame: false, showQuestion: false, buttonText: "3 | Please focus on the fixation cross"});
     setTimeout(() => this.setState({buttonText: "2 | Please focus on the fixation cross"}), 1000);
     setTimeout(() => this.setState({buttonText: "1 | Please focus on the fixation cross"}), 2000);
