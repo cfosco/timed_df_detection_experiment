@@ -159,6 +159,8 @@ class Experiment extends Component {
       videoData: tmp,
       maxLevels: Object.keys(tmp).length,
       maxVideos: tmp["level0"].length,
+      responseButtonDisabled: false,
+      mainButtonDisabled: false,
     };
 
 
@@ -169,11 +171,13 @@ class Experiment extends Component {
     this._handleClose = this._handleClose.bind(this);
     this._handleFakeButton = this._handleFakeButton.bind(this);
     this._handleRealButton = this._handleRealButton.bind(this);  
+    this._handleResponseButton = this._handleResponseButton.bind(this);
     this._handleStartButton = this._handleStartButton.bind(this);
     this._handleSubmitButton = this._handleSubmitButton.bind(this);
     this._gup = this._gup.bind(this);
     this._submitHITform = this._submitHITform.bind(this);
     this._addHiddenField = this._addHiddenField.bind(this);
+    this._onLoadedVideo = this._onLoadedVideo.bind(this);
   }
 
   _gup(name) {
@@ -202,6 +206,7 @@ class Experiment extends Component {
         percentLevelCompletion: Math.round(Math.min((0) / this.state.videoData["level0"].length * 100, 100)),
         currentVideo: this.state.videoData["level0"][0]["url"],
         currentVideoInterval: this.state.videoData["level0"][0]["time"],
+        currentVideoLabel: this.state.videoData["level0"][0]["label"],
       })
     }
     else {
@@ -241,16 +246,12 @@ class Experiment extends Component {
   _handleStartButton() {
     // Handles the start button: starts countdown and shows first deepfake
 
+    if (this.state.buttonText !== 'START' || this.state.mainButtonDisabled) { return; }
+
     console.log("entering _handleStartButton")
-    // console.log(this.state.buttonText )
-
-    if (this.state.buttonText !== 'START') { return; }
-
-    console.log(this.state.currentVideo)
-    console.log(this.state)
 
 
-    this.setState({buttonText: "3 | Please focus on the fixation cross"});
+    this.setState({mainButtonDisabled: true, buttonText: "3 | Please focus on the fixation cross"});
     setTimeout(() => this.setState({buttonText: "2 | Please focus on the fixation cross"}), 1000);
     setTimeout(() => this.setState({buttonText: "1 | Please focus on the fixation cross"}), 2000);
     setTimeout(() => this.setState({showGame: true, buttonText: 'NEXT LEVEL', timer: performance.now()}), 3000);
@@ -258,40 +259,59 @@ class Experiment extends Component {
 
   _handleFakeButton() {
     // This handles the FAKE option after video is shown
-    let response_time = performance.now() - this.state.timer
-    this.state.response_times.push(response_time);
-    this.state.videoChoices.push({'response': 'FAKE', 'response_time': response_time, 'video': this.state.currentVideo, 'pres_time': this.state.currentVideoInterval, 'label':this.state.currentVideoLabel});
-
-    this.setState({
-      percentLevelCompletion: this.state.percentLevelCompletion + 100/this.state.maxVideos,
-    });
-    setTimeout(() => this._loadNextVideo(), 300);
+    this._handleResponseButton('FAKE');
   }
-
 
   _handleRealButton() {
     // This handles the REAL option after video is shown
-    // Should load a new video right after an option is clicked
+    this._handleResponseButton('REAL');
+  }
+
+  _handleResponseButton(resp) {
+    // General function to handle clicking either FAKE or REAL
+
+    // If button disabled, do nothing
+    if (this.state.responseButtonDisabled) {
+      return;
+    }
+
+    // Disable button to avoid double clicking
+    this.setState({responseButtonDisabled: true});
+
+    // Compute response_time
     let response_time = performance.now() - this.state.timer
-    this.state.response_times.push(response_time);
-    this.state.videoChoices.push({'response': 'REAL', 'response_time': response_time, 'video': this.state.currentVideo, 'pres_time': this.state.currentVideoInterval, 'label':this.state.currentVideoLabel});
+
+    // Push response to videoChoices
+    this.state.videoChoices.push({'response': resp, 
+                                  'response_time': response_time, 
+                                  'video': this.state.currentVideo, 
+                                  'pres_time': this.state.currentVideoInterval, 
+                                  'label':this.state.currentVideoLabel});
+    
+    // Update level completion
     this.setState({
       percentLevelCompletion: this.state.percentLevelCompletion + 100/this.state.maxVideos,
     });
-    setTimeout(() => this._loadNextVideo(), 300);
 
+    // Debugging logs
+    console.log("length of videoChoices: ", this.state.videoChoices.length)
+
+    // Load next video after a few miliseconds (better UX, feels smoother)
+    setTimeout(() => this._loadNextVideo(), 150);
   }
 
   _handleSubmitButton() {
     // This handles the submit button logic
     console.log("entering _handleSubmitButton")
+    if (this.state.mainButtonDisabled === true) { return; }
+
     if (this.state.currentLevel < this.state.maxLevels) {
       this._loadNextLevel();
     } else {
       console.log("entering SUBMIT portion of _handleSubmitButton")
       // var res = {'videoChoices': this.state.videoChoices, 'response_times': this.state.reponse_times};
       var myJSON = JSON.stringify(this.state.videoChoices);
-      this.setState({showSubmit: false, showQuestion: false, showEnd: true, disabled: true});
+      this.setState({showSubmit: false, showQuestion: false, showEnd: true, mainButtonDisabled: true});
       this._submitHITform();
       dbx.filesUpload({path: '/' + this._makeid(20) + '.json', contents: myJSON})
       //  .then(function(response) {
@@ -332,12 +352,13 @@ class Experiment extends Component {
     // Loads next video after clicking a REAL or FAKE button inside a level
     // If there are no more videos, show submit button and return
 
-    if (Math.round(this.state.percentLevelCompletion) === 100) {
+    if (Math.round(this.state.percentLevelCompletion) >= 100) {
+      this.setState({percentLevelCompletion: 100});
       console.log("Level completed. Loading next level")
       if (this.state.currentLevel < this.state.maxLevels) {
-        this.setState({buttonText: "NEXT LEVEL"});
+        this.setState({mainButtonDisabled: false, buttonText: "NEXT LEVEL"});
       } else {
-        this.setState({buttonText: "SUBMIT"});
+        this.setState({mainButtonDisabled: false, buttonText: "SUBMIT"});
       }
       this.setState({showSubmit: true});
       return;
@@ -347,7 +368,7 @@ class Experiment extends Component {
     console.log("entering _loadNextVideo")
     var videoData = this.state.videoData["level"+(this.state.currentLevel-1)][this.state.currentVideoIndex];
 
-    console.log("New video loaded: ", videoData)
+    // console.log("New video loaded: ", videoData)
 
     if(videoData === undefined) {
       return;
@@ -385,6 +406,13 @@ class Experiment extends Component {
     // document.addEventListener("keydown", this._handleKeyDown);
   }
 
+  _onLoadedVideo() {
+    // This is called when the video is loaded
+    console.log('Video is loaded!')
+    setTimeout(() => this.setState({showGame: false, showQuestion: true, responseButtonDisabled: false}), this.state.currentVideoInterval);
+  
+  }
+
   _loadNextLevel() {
     console.log("entering _loadNextLevel")
     this.setState({
@@ -395,6 +423,7 @@ class Experiment extends Component {
       timer: performance.now(),
       showSubmit: false,
       currentVideoIndex: 0,
+      mainButtonDisabled: true,
     }, () => this._loadNextVideo())
     // if (this.state.currentLevel >= this.state.maxLevels) {
     //   this.setState({buttonText: 'SUBMIT'})
@@ -406,8 +435,8 @@ class Experiment extends Component {
     const {classes} = this.props;
     const { buttonText, currentLevel,
             percentLevelCompletion, showGame, showQuestion, showSubmit, showButton,
-            currentVideo,
-            videoSize, videoDistance, showEnd, disabled,
+            currentVideo, responseButtonDisabled, mainButtonDisabled,
+            videoSize, videoDistance, showEnd,
             maxLevels, maxVideos, anchorEl } = this.state;
     const open = Boolean(anchorEl);
     const id = open ? 'simple-popover' : undefined;
@@ -445,7 +474,7 @@ class Experiment extends Component {
               After seeing a video, you will be asked if what you saw was real or fake. You won't be able to rewatch the video. <br />
 
               <br/>
-              <b>The videos you will be shown will look like the ones below.</b> Be vigilant: some fake videos look a lot like real ones! 
+              <b>The videos you will be shown will look like the ones below.</b> Be vigilant: some fake videos look a lot like real ones! All of these examples are FAKE VIDEOS.
               Use the examples below as references to try to spot fakes as best you can.
               <br />
 
@@ -532,22 +561,8 @@ class Experiment extends Component {
                     muted
                     onLoadStart={() => {
                       console.log('...I am loading...')
-                      // this.setState({ videoSize: 0 });
-                      // this.setState({showGame:false, showQuestion:false, buttonText: "3 | Please focus on the fixation cross"});
-                      // setTimeout(() => this.setState({buttonText: "2 | Please focus on the fixation cross"}), 1000);
-                      // setTimeout(() => this.setState({buttonText: "1 | Please focus on the fixation cross"}), 2000);
-                      // setTimeout(() => this.setState({
-                      //   showGame: true,
-                      //   showQuestion: false,
-                      //   timer: performance.now(),
-                      //   overclick: false,
-                      // }), 3000);
                     }}
-                    onLoadedData={() => {
-                        console.log('Data is loaded!')
-                        // this.setState({ videoSize: 360 });
-                        setTimeout(() => this.setState({showGame: false, showQuestion: true}), this.state.currentVideoInterval);
-                    }}
+                    onLoadedData={this._onLoadedVideo}
                     />
                 </div>
                 
@@ -562,10 +577,10 @@ class Experiment extends Component {
             <div className={classes.questionDisplaySection}>
               <h2> Was the video fake or real? </h2>
               <div className={classes.videoContainer}>
-              <Button variant="contained" className={classes.startButton} onClick={this._handleFakeButton} style={{margin:32}}>
+              <Button disabled={responseButtonDisabled} variant="contained" className={classes.startButton} onClick={this._handleFakeButton} style={{margin:32}}>
                 Fake
               </Button>
-              <Button variant="contained" className={classes.startButton} onClick={this._handleRealButton} style={{margin:32}}>
+              <Button disabled={responseButtonDisabled} variant="contained" className={classes.startButton} onClick={this._handleRealButton} style={{margin:32}}>
                 Real
               </Button>
               </div>
@@ -589,7 +604,7 @@ class Experiment extends Component {
           {
             !showGame && !showQuestion && !showEnd &&
             <div style={{display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center'}}>
-              <Button disabled={disabled} variant="contained" className={classes.startButton} onClick={this._handleStartButton}>
+              <Button disabled={mainButtonDisabled} variant="contained" className={classes.startButton} onClick={this._handleStartButton}>
                 {buttonText}
               </Button>
             </div>
@@ -597,7 +612,7 @@ class Experiment extends Component {
           {
             showSubmit &&
             <div style={{display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center'}}>
-              <Button disabled={disabled} variant="contained" className={classes.startButton} onClick={this._handleSubmitButton}>
+              <Button disabled={mainButtonDisabled} variant="contained" className={classes.startButton} onClick={this._handleSubmitButton}>
                 {buttonText}
               </Button>
             </div>
