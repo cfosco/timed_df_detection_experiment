@@ -20,6 +20,7 @@ const dbx = new Dropbox({
 });
 
 const MTURK_SUBMIT_SUFFIX = "/mturk/externalSubmit";
+const JSON_IDENTIFIER = 'data'
 
 const styles = theme => ({
   root: {
@@ -192,13 +193,11 @@ class Experiment extends Component {
 
   componentDidMount(){
     var url = window.location.href;
-    var identifier = "data";
-    if (url.indexOf(identifier) > 0) {
+    if (url.indexOf(JSON_IDENTIFIER) > 0) {
       console.log("Trying to locate file");
-      var file = this._gup(identifier);
+      var file = this._gup(JSON_IDENTIFIER);
       console.log("Using json file: " + file);
       var data = require('./jsons_2vig/' + file);
-      // console.log(data)
       this.state.videoData = data
       this.setState({
         maxLevels: Object.keys(this.state.videoData).length,
@@ -310,10 +309,31 @@ class Experiment extends Component {
     } else {
       console.log("entering SUBMIT portion of _handleSubmitButton")
       // var res = {'videoChoices': this.state.videoChoices, 'response_times': this.state.reponse_times};
-      var myJSON = JSON.stringify(this.state.videoChoices);
       this.setState({showSubmit: false, showQuestion: false, showEnd: true, mainButtonDisabled: true});
       this._submitHITform();
-      dbx.filesUpload({path: '/' + this._makeid(20) + '.json', contents: myJSON})
+      
+      // Prepare for dropbox
+      let hitId = this._gup("HITId");
+      let assigId = this._gup("assignmentId");
+      let workerId = this._gup("workerId");
+
+      var url = window.location.href;
+      if (url.indexOf(JSON_IDENTIFIER) > 0) {
+        var current_json = this._gup(JSON_IDENTIFIER).split('.')[0]
+      } else {
+        var current_json = 'default'
+      }
+
+      var res = { 'HITId': hitId, 
+                  'AssignmentId': assigId,
+                  'WorkerId': workerId,
+                  'json': current_json,
+                  'results': this.state.videoChoices}
+      var dbxJSON = JSON.stringify(res);
+      var dbx_name = 'HITId_' + hitId + '_workerId_' + workerId + '_' + current_json
+
+      // Upload to dropbox
+      dbx.filesUpload({path: '/' + dbx_name + '.json', contents: dbxJSON})
       //  .then(function(response) {
       //    alert("Thank you for completing the game.");
       //  })
@@ -333,12 +353,13 @@ class Experiment extends Component {
 
     this._addHiddenField(form, 'assignmentId', this._gup("assignmentId"));
     this._addHiddenField(form, 'workerId', this._gup("workerId"));
+    this._addHiddenField(form, 'json', this._gup(JSON_IDENTIFIER));
     // this._addHiddenField(form, 'taskTime', (Date.now() - this.state.timer)/1000);
     // this._addHiddenField(form, 'feedback', $("#feedback-input").val());
     this._addHiddenField(form, 'results', JSON.stringify(this.state.videoChoices));
-    $("#submit-form").attr("action", submitUrl);
-    $("#submit-form").attr("method", "POST");
-    $("#submit-form").submit();
+    // $("#submit-form").attr("action", submitUrl);
+    // $("#submit-form").attr("method", "POST");
+    // $("#submit-form").submit();
   }
 
   _addHiddenField(form, name, value) {
